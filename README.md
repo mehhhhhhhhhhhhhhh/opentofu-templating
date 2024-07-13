@@ -45,20 +45,20 @@ In the example above, the template contains references to **external configurati
 
 * More of this type of code, including the Ruby DSL (`.tf.rb`), can be seen in [`examples/with-env-data`](examples/with-env-data).
 * The sample config files it's using can be seen in [`example-data`](example-data).
-* In this directory, the `./plan` script is a symlink to [`lib/terraform-templating/plan-with-env-data`](lib/terraform-templating/plan-with-env-data).
+* In this directory, the `./plan` script is a symlink to [`lib/opentofu-templating/plan-with-env-data`](lib/opentofu-templating/plan-with-env-data).
 
 This is not strictly necessary -- the templating tool can also be used by itself, **without the need for any external files** at all.
 
 * This type of code, directly referencing a local JSON file for code generation, can be seen in [`examples/standalone`](examples/standalone).
-* In this example directory, the `./plan` script is a symlink to [`lib/terraform-templating/plan-standalone`](lib/terraform-templating/plan-standalone).
+* In this example directory, the `./plan` script is a symlink to [`lib/opentofu-templating/plan-standalone`](lib/opentofu-templating/plan-standalone).
 
 
 How to get started
 -------
 
-Clone [`lib/terraform-templating`](lib/terraform-templating) somewhere.
+Clone [`lib/opentofu-templating`](lib/opentofu-templating) somewhere.
 
-Create a symlink (in this example, called `plan`) to the [`plan-standalone`](lib/terraform-templating/plan-standalone) script in that directory, from your OpenTofu project directory.
+Create a symlink (in this example, called `plan`) to the [`plan-standalone`](lib/opentofu-templating/plan-standalone) script in that directory, from your OpenTofu project directory.
 
 Use this `./plan` link instead of directly calling `tofu`, and a `work/` subdirectory will be created with the evaluated template results, and links to all your other original files. Then, `tofu` will be called in that directory instead of your original directory.
 
@@ -81,7 +81,7 @@ Other variations
 
 This isn't a framework -- it's just an example, which can be easily modified for different needs. You should own your own interface!
 
-Check out the repo, and compare the changes from `plan-standalone` to `plan-with-env-data` in [`lib/terraform-templating`](lib/terraform-templating) -- you'll see that the customization needed is pretty minimal, to get similar results with your own project layout.
+Check out the repo, and compare the changes from `plan-standalone` to `plan-with-env-data` in [`lib/opentofu-templating`](lib/opentofu-templating) -- you'll see that the customization needed is pretty minimal, to get similar results with your own project layout.
 
 
 Hidden depths
