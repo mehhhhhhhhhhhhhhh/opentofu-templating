@@ -12,17 +12,17 @@ require 'fileutils'
 
 LibDir = File.realpath(__dir__)
 
-TerraformVersion = YAML.load(File.read(File.join(__dir__, '..', '..', 'terraform-version.tf.json')))['terraform']['required_version']
-TerraformBinary = `which terraform`.strip
-if TerraformBinary.empty? or not $?.success?
-	$stderr.puts "Couldn't find terraform binary -- is it installed?"
-	$stderr.puts "  -> https://releases.hashicorp.com/terraform/#{TerraformVersion}/"
+TofuVersion = YAML.load(File.read(File.join(__dir__, '..', '..', 'opentofu-version.tf.json')))['terraform']['required_version']
+TofuBinary = `which tofu`.strip
+if TofuBinary.empty? or not $?.success?
+	$stderr.puts "Couldn't find tofu binary -- is it installed?"
+	$stderr.puts "  -> https://github.com/opentofu/opentofu/releases/tag/#{TofuVersion}"
 	$stderr.puts "(You have ~ in your $PATH which sadly works in bash but not much else. Use $HOME instead?)" if ENV['PATH'].include?('~')
 	exit 4
 else
-	unless `"#{TerraformBinary}" -v`.include?(TerraformVersion)
-		$stderr.puts "You have the wrong Terraform version; you should have #{TerraformVersion}"
-		$stderr.puts "  -> https://releases.hashicorp.com/terraform/#{TerraformVersion}/"
+	unless `"#{TofuBinary}" -v`.include?(TofuVersion)
+		$stderr.puts "You have the wrong OpenTofu version; you should have #{TofuVersion}"
+		$stderr.puts "  -> https://github.com/opentofu/opentofu/releases/tag/#{TofuVersion}"
 		exit 4
 	end
 end
@@ -41,13 +41,13 @@ opts_parser.parse!
 # Can pass e.g. `./plan ... -- workspace show` or `./plan ... -- import thing thing`
 # Or... `./plan -- apply result.plan`
 # Then that command will be run instead of the default plan command (but in the same working directory)
-AlternateTerraformCommand = ARGV.empty? ? nil : ARGV
+AlternateTofuCommand = ARGV.empty? ? nil : ARGV
 
 TestTemplating ||= false
 EnvironmentName ||= ENV['AWS_ENV'] or raise "Environment not specified (-e, --environment, $AWS_ENV)"
 
 SourceDir = File.realdirpath(File.dirname($0))
-TerraformPluginDir = ENV['TERRAFORM_PLUGIN_DIR'] || File.join(__dir__, '.terraform-plugins')
+TofuPluginDir = ENV['TERRAFORM_PLUGIN_DIR'] || File.join(__dir__, '.terraform-plugins')
 WorkDir = case
 	when ENV['WORK_DIR']
 		ENV['WORK_DIR']
@@ -59,7 +59,7 @@ WorkDir = case
 OutputFilePrefix ||= ENV['OUTPUT_FILE_PREFIX'] ? File::realdirpath(ENV['OUTPUT_FILE_PREFIX']) : File.join(WorkDir, 'result')
 
 ShouldInit ||= (not File.exist?(File.join(WorkDir, '.terraform')))
-IsWorkspaceCommand = (AlternateTerraformCommand.first rescue '') == 'workspace'
+IsWorkspaceCommand = (AlternateTofuCommand.first rescue '') == 'workspace'
 
 
 ##############################
@@ -123,7 +123,7 @@ FileUtils.mkdir_p WorkDir
 
 scope_vars = OpenStruct.new({
 	# you can put things in here, to make them available to your .tf.rb or .tf.erb files
-	TerraformVersion: TerraformVersion,
+	TofuVersion: TofuVersion,
 	Environments: Environments,
 	Environment: Environment,
 	Regions: Regions,
@@ -207,7 +207,7 @@ end
 
 
 ##############################
-# terraform invocation
+# tofu invocation
 
 unless ENV['AWS_SECRET_ACCESS_KEY'] or ENV['AWS_SECRET_KEY']
 	$stderr.puts "No AWS credentials found. Use the wrapper?"
@@ -215,18 +215,18 @@ unless ENV['AWS_SECRET_ACCESS_KEY'] or ENV['AWS_SECRET_KEY']
 	exit 4
 end
 
-current_workspace = `'#{TerraformBinary}' workspace show`.strip
+current_workspace = `'#{TofuBinary}' workspace show`.strip
 if ShouldInit or (current_workspace != Environment['name'] and not IsWorkspaceCommand)
-	FileUtils.mkdir_p(TerraformPluginDir)
+	FileUtils.mkdir_p(TofuPluginDir)
 	FileUtils.mkdir_p(File.join(WorkDir, '.terraform'))
-	FileUtils.ln_s(TerraformPluginDir, File.join(WorkDir, '.terraform', 'plugins'), force: true)
-	system("'#{TerraformBinary}' init -reconfigure")
-	system("'#{TerraformBinary}' workspace select #{Environment['name']}") or exit 4 unless IsWorkspaceCommand
+	FileUtils.ln_s(TofuPluginDir, File.join(WorkDir, '.terraform', 'plugins'), force: true)
+	system("'#{TofuBinary}' init -reconfigure")
+	system("'#{TofuBinary}' workspace select #{Environment['name']}") or exit 4 unless IsWorkspaceCommand
 
-	system("'#{TerraformBinary}' init -reconfigure") or exit 4 unless IsWorkspaceCommand
+	system("'#{TofuBinary}' init -reconfigure") or exit 4 unless IsWorkspaceCommand
 end
 
-current_workspace = `'#{TerraformBinary}' workspace show`.strip
+current_workspace = `'#{TofuBinary}' workspace show`.strip
 unless IsWorkspaceCommand or current_workspace == Environment['name']
 	puts "You've got the #{current_workspace} workspace selected, not the #{Environment['name']} one!"
 	puts "  (./plan -i is for --force-init)"
@@ -238,13 +238,13 @@ general_options = ['--input=false']
 general_options += ['--var', "domain=#{Environment['domain']}"]
 general_options += ['--var', "env_tag_name=#{Environment['tag_name'] || Environment['name']}"]
 
-plan_command = [TerraformBinary]
-if AlternateTerraformCommand
+plan_command = [TofuBinary]
+if AlternateTofuCommand
 	plan_command += case
-		when %w[apply graph state show workspace taint untaint].any?{|cmd| AlternateTerraformCommand[0] == cmd }
-			AlternateTerraformCommand
+		when %w[apply graph state show workspace taint untaint].any?{|cmd| AlternateTofuCommand[0] == cmd }
+			AlternateTofuCommand
 		else
-			[AlternateTerraformCommand[0], *general_options, *(AlternateTerraformCommand[1..-1] || [])]
+			[AlternateTofuCommand[0], *general_options, *(AlternateTofuCommand[1..-1] || [])]
 		end
 else
 	plan_command += ["plan", *general_options]
