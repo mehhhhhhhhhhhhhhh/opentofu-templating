@@ -3,6 +3,8 @@ Templating support for OpenTofu / [Terraform](https://github.com/mehhhhhhhhhhhhh
 
 I have separate repos for the two tools, because it's not clear what direction either project is now going in, and they may end up diverging significantly.
 
+While so far everything seems functionally identical in mid-2024, I've not fully tested this with OpenTofu yet on a fresh project, so I'm not sure if all the directory names for things like plugins are still the same, or if anything will imminently change and cause breakage. Please let me know if you have any trouble!
+
 
 An example
 -------
