@@ -147,10 +147,10 @@ Dir["**/*"].each do |path|
 			erb.filename = path
 			destination.write(erb.result(binding))
 		end
-	elsif match = /((?<subdir>.*)\/)?(?<filename>[^\/]*)\.tf.rb$/ =~ path
+	elsif match = /((?<subdir>.*)\/)?(?<filename>[^\/]*)\.(?<extension>tf|tofu).rb$/ =~ path
 		FileUtils.mkdir_p(File.join(WorkDir, subdir)) if subdir
-		destination_path = "#{WorkDir}/#{subdir ? "#{subdir}/" : ''}#{filename}.gen.tf.json"
-		expected_files << "#{subdir ? "#{subdir}/" : ''}#{filename}.gen.tf.json"
+		destination_path = "#{WorkDir}/#{subdir ? "#{subdir}/" : ''}#{filename}.gen.#{extension}.json"
+		expected_files << "#{subdir ? "#{subdir}/" : ''}#{filename}.gen.#{extension}.json"
 		File.open(destination_path, 'w') do |destination|
 			scope_vars.instance_eval do
 				load(File.join(LibDir, 'tf-ruby-template-wrapper.rb'))
@@ -167,7 +167,7 @@ end
 Dir::chdir WorkDir
 
 (Set.new(Dir["**/*"]) - expected_files).reject{|d| File.directory?(d) }.each do |unexpected_file|
-	if unexpected_file.end_with?('.tf') or unexpected_file.end_with?('.tf.json')
+	if %w[.tf .tf.json .tofu .tofu.json].any?{|ext| unexpected_file.end_with?(ext) }
 		$stderr.puts "Warning: deleting unexpected file #{unexpected_file} in working directory."
 		File.unlink(unexpected_file)
 	else
