@@ -20,11 +20,11 @@ if TofuBinary.empty? or not $?.success?
 	$stderr.puts "(You have ~ in your $PATH which sadly works in bash but not much else. Use $HOME instead?)" if ENV['PATH'].include?('~')
 	exit 4
 else
-	unless `"#{TofuBinary}" -v`.include?(TofuVersion)
-		$stderr.puts "You have the wrong OpenTofu version; you should have #{TofuVersion}"
-		$stderr.puts "  -> https://github.com/opentofu/opentofu/releases/tag/#{TofuVersion}"
-		exit 4
-	end
+#	unless `"#{TofuBinary}" -v`.include?(TofuVersion)
+#		$stderr.puts "You have the wrong OpenTofu version; you should have #{TofuVersion}"
+#		$stderr.puts "  -> https://github.com/opentofu/opentofu/releases/tag/#{TofuVersion}"
+#		exit 4
+#	end
 end
 
 TeeBinary = `which tee`.strip
